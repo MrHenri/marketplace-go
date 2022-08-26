@@ -45,3 +45,14 @@ func Insert(w http.ResponseWriter, r *http.Request) {
 	}
 	http.Redirect(w, r, "/", http.StatusMovedPermanently)
 }
+
+func Delete(w http.ResponseWriter, r *http.Request) {
+	productId := r.URL.Query().Get("id")
+
+	err := models.DeleteProduct(productId)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	http.Redirect(w, r, "/", http.StatusMovedPermanently)
+}

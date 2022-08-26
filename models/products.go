@@ -5,7 +5,7 @@ import "github.com/MrHenri/marketplace-go/db"
 type Product struct {
 	Name, Description string
 	Price             float64
-	Quantity          int
+	Id, Quantity      int
 }
 
 func GetAllProducts() []Product {
@@ -30,6 +30,7 @@ func GetAllProducts() []Product {
 			panic(err.Error())
 		}
 
+		p.Id = id
 		p.Name = name
 		p.Description = description
 		p.Price = price
@@ -54,5 +55,20 @@ func CreateNewProduct(name, description string, price float64, quantity int) err
 	insertQuery.Exec(name, description, price, quantity)
 	defer db.Close()
 
+	return nil
+}
+
+func DeleteProduct(productId string) error {
+	db := db.ConnectDB()
+
+	deleteQuery, err := db.Prepare("delete from products Where id = $1")
+
+	if err != nil {
+		return err
+	}
+
+	deleteQuery.Exec(productId)
+
+	defer db.Close()
 	return nil
 }
