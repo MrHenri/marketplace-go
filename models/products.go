@@ -1,6 +1,8 @@
 package models
 
-import "github.com/MrHenri/marketplace-go/db"
+import (
+	"github.com/MrHenri/marketplace-go/db"
+)
 
 type Product struct {
 	Name, Description string
@@ -68,6 +70,45 @@ func DeleteProduct(productId string) error {
 	}
 
 	deleteQuery.Exec(productId)
+
+	defer db.Close()
+	return nil
+}
+
+func GetProduct(productId string) (Product, error) {
+	db := db.ConnectDB()
+
+	getQuery := db.QueryRow("select * from products where id = $1", productId)
+
+	var id, quantity int
+	var name, description string
+	var price float64
+
+	if err := getQuery.Scan(&id, &name, &description, &price, &quantity); err != nil {
+		return Product{}, err
+	}
+
+	product := Product{
+		Id:          id,
+		Quantity:    quantity,
+		Name:        name,
+		Description: description,
+		Price:       price,
+	}
+
+	defer db.Close()
+	return product, nil
+}
+
+func UpdateProduct(id int, name, description string, price float64, quantity int) error {
+	db := db.ConnectDB()
+
+	updateQuery, err := db.Prepare("UPDATE products SET name = $1, description = $2, price = $3, quantity = $4 WHERE id = $5")
+	if err != nil {
+		return err
+	}
+
+	updateQuery.Exec(&name, &description, &price, &quantity, &id)
 
 	defer db.Close()
 	return nil
